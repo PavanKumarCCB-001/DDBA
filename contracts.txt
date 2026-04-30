@@ -1,0 +1,147 @@
+// -- Voting --
+pragma solidity ^0.8.0;
+contract Cn{
+struct Candidate{
+string name;
+  uint votes; }
+  uint public count;
+  mapping (address => bool) public voted;
+  mapping (uint => Candidate) public candidates;
+  //Add Candidate
+  function add(string memory _name){
+  candidates[count]=Candidate(_name,0);
+  count++;
+  }
+  // Vote
+  function vote(uint id) public{
+  require(!voted[msg.sender],"Already Voted");
+  candidates[id].votes++;
+  voted[msg.sender]=true;
+  }
+  //Get votes
+  function gv(uint id) public view returns(uint){
+    return candidates[id].votes;} }
+
+// -- Supply chain --
+pragma solidity ^0.8.0; 
+contract SupplyChain { 
+    struct Product { 
+        uint id; 
+        string name; 
+        address owner; 
+        string location;     } 
+    mapping(uint => Product) public products; 
+    // Add product 
+    function addProduct(uint _id, string memory _name, string memory _location) public { 
+        products[_id] = Product(_id, _name, msg.sender, _location);     } 
+ 
+    // Transfer ownership 
+    function transferProduct(uint _id, address _newOwner, string memory _newLocation) public { 
+        require(products[_id].owner == msg.sender, "Not owner"); 
+ 
+        products[_id].owner = _newOwner; 
+        products[_id].location = _newLocation;     } 
+    // View product 
+    function getProduct(uint _id) public view returns(uint, string memory, address, string memory) { 
+        Product memory p = products[_id]; 
+        return (p.id, p.name, p.owner, p.location);     }  } 
+
+// -- Insurance --
+pragma solidity ^0.8.0; 
+contract Insurance { 
+ 
+    address public insurer; // owner 
+    address public user; 
+    uint public premium = 1 ether; 
+    bool public claimApproved; 
+ 
+    constructor() { 
+        insurer = msg.sender;     } 
+ 
+    // User pays premium 
+    function payPremium() public payable { 
+        require(msg.value == premium, "Pay exact premium"); 
+        user = msg.sender;     } 
+ 
+    // Insurer approves claim (condition met) 
+    function approveClaim() public { 
+        require(msg.sender == insurer, "Not insurer"); 
+        claimApproved = true;    } 
+ 
+    // Automatic payout 
+    function claim() public { 
+        require(msg.sender == user, "Not user"); 
+        require(claimApproved == true, "Claim not approved"); 
+        payable(user).transfer(address(this).balance);     } } 
+
+
+// -- ERC20 --
+Aim: To demonstrate the creation of an ERC20 token and develop a smart contract-based bank system that 
+supports lending and borrowing of ERC20 tokens 
+ 
+Description: 
+ERC20 is a standard for tokens on the Ethereum. 
+It defines functions like: 
+ transfer()  
+ approve()  
+ transferFrom()  
+ balanceOf()  
+This ensures all tokens behave the same way. 
+Algorithm: 
+1. Create an ERC20 token contract  
+2. Deploy the token  
+3. Create a Bank contract  
+4. Link the token address to the bank  
+5. Deposit tokens into the bank  
+6. Borrow tokens from the bank  
+7. Repay borrowed tokens 
+Code: 
+ 
+Token.sol 
+// SPDX-License-Identifier: MIT 
+pragma solidity ^0.8.0; 
+ 
+contract MyToken { 
+    mapping(address => uint) public balance; 
+ 
+    constructor() { 
+        balance[msg.sender] = 1000;} // initial tokens  
+     
+ 
+    function transfer(address to, uint amount) public { 
+        require(balance[msg.sender] >= amount, "No balance"); 
+        balance[msg.sender] -= amount; 
+        balance[to] += amount;     } } 
+ 
+bank.sol 
+// SPDX-License-Identifier: MIT 
+pragma solidity ^0.8.0;
+interface Token { 
+    function transfer(address to, uint amount) external; 
+    function transfer(address from, uint amount) external; 
+    function balance(address user) external view returns(uint); } 
+ 
+contract Bank { 
+    Token public token; 
+ 
+    mapping(address => uint) public deposit; 
+    mapping(address => uint) public loan; 
+ 
+    constructor(address tokenAddress) { 
+        token = Token(tokenAddress);      } 
+ 
+    // Deposit tokens 
+    function depositToken(uint amount) public { 
+        token.transfer(address(this), amount); 
+        deposit[msg.sender] += amount;      } 
+ 
+    // Borrow tokens 
+    function borrow(uint amount) public { 
+        require(token.balance(address(this)) >= amount, "Bank empty"); 
+        loan[msg.sender] += amount; 
+        token.transfer(msg.sender, amount);      } 
+ 
+    // Repay loan 
+    function repay(uint amount) public { 
+        token.transfer(address(this), amount); 
+        loan[msg.sender] -= amount;      }  }
